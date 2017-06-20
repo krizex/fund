@@ -9,8 +9,10 @@ import scrapy
 
 
 class FundHolderItem(scrapy.Item):
-    date = scrapy.Field()
-    org_percent = scrapy.Field()
-    individual_percent = scrapy.Field()
-    inner_percent = scrapy.Field()
-    total_share = scrapy.Field()
+    fund_id = scrapy.Field()
+    fund_holder_list = scrapy.Field()
+    # date = scrapy.Field()
+    # org_percent = scrapy.Field()
+    # individual_percent = scrapy.Field()
+    # inner_percent = scrapy.Field()
+    # total_share = scrapy.Field()
