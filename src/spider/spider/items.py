@@ -16,3 +16,8 @@ class FundHolderItem(scrapy.Item):
     # individual_percent = scrapy.Field()
     # inner_percent = scrapy.Field()
     # total_share = scrapy.Field()
+
+
+class FundRankItem(scrapy.Item):
+    fund_id = scrapy.Field()
+    fund_rank_list = scrapy.Field()

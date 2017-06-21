@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 import scrapy
 from scrapy_splash import SplashRequest
 
-from spider.items import FundHolderItem
+from spider.items import FundHolderItem, FundRankItem
 
 __author__ = 'David Qian'
 
@@ -14,8 +15,8 @@ Created on 06/14/2017
 """
 
 
-class FundHolderSpider(scrapy.Spider):
-    name = "fund_holder"
+class FundSpider(scrapy.Spider):
+    name = "fund_spider"
     allowed_domains = ['fund.eastmoney.com']
     start_urls = [
         'http://fund.eastmoney.com/f10/cyrjg_000801.html'
@@ -26,14 +27,19 @@ class FundHolderSpider(scrapy.Spider):
             yield SplashRequest(url, self.parse, args={'wait': 0.5})
 
     def parse(self, response):
-        jjlist = response.xpath("//select[@id='jjlist']/option/@value")
-        for jjid in jjlist:
-            jjid = jjid.extract()
-            yield self._build_fund_holder_request(jjid)
+        fund_list = response.xpath("//select[@id='jjlist']/option/@value")
+        for fund_id in fund_list:
+            fund_id = fund_id.extract()
+            yield self._build_fund_holder_request(fund_id)
+            yield self._build_fund_rank_request(fund_id)
 
     def _build_fund_holder_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=cyrjg&code=%s' % fund_id
         return SplashRequest(url, self.parse_fund_holder, args={'wait': 0.5}, meta={'fund_id': fund_id})
+
+    def _build_fund_rank_request(self, fund_id):
+        url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=quarterzf&code=%s' % fund_id
+        return SplashRequest(url, self.parse_fund_rank, args={'wait': 0.5}, meta={'fund_id': fund_id})
 
     def parse_fund_holder(self, response):
         fund_id = response.meta['fund_id']
@@ -44,7 +50,7 @@ class FundHolderSpider(scrapy.Spider):
         fund_holder_list = []
         for h in holder_list:
             keys = ['date', 'org_percent', 'individual_percent', 'inner_percent', 'total_share']
-            fields = [field.extract() for field in h.xpath('//td/text()')]
+            fields = [field.extract() for field in h.xpath('./td/text()')]
             d = {}
             for f, k in zip(keys, fields):
                 d[f] = k
@@ -54,3 +60,34 @@ class FundHolderSpider(scrapy.Spider):
         item['fund_id'] = fund_id
         item['fund_holder_list'] = fund_holder_list
         return item
+
+    def parse_fund_rank(self, response):
+        fund_id = response.meta['fund_id']
+        fund_rank_list = []
+        try:
+            rank_list = response.css('.jndxq').xpath("./tbody/tr")[3]
+            ranks = rank_list.xpath('./td')[1:]
+            for rank in ranks:
+                fund_rank_list.append(self._calc_rank_rate(rank))
+        except:
+            pass
+
+        item = FundRankItem()
+        item['fund_id'] = fund_id
+        item['fund_rank_list'] = fund_rank_list
+        return item
+
+    def _calc_rank_rate(self, rank):
+        try:
+            rank = rank.extract()
+            m = re.match(r'<td>(\d+)<span.+/span>(\d+)</td>', rank)
+            idx, total = m.groups()
+            idx = float(idx)
+            total = float(total)
+            return 1.0 * idx / total
+        except:
+            return 100.0
+
+
+
+
