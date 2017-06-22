@@ -4,7 +4,7 @@ import re
 import scrapy
 from scrapy_splash import SplashRequest
 
-from spider.items import FundHolderItem, FundRankItem
+from spider.items import FundHolderItem, FundRankItem, FuncInfoItem
 
 __author__ = 'David Qian'
 
@@ -32,6 +32,7 @@ class FundSpider(scrapy.Spider):
             fund_id = fund_id.extract()
             yield self._build_fund_holder_request(fund_id)
             yield self._build_fund_rank_request(fund_id)
+            yield self._build_fund_info(fund_id)
 
     def _build_fund_holder_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=cyrjg&code=%s' % fund_id
@@ -40,6 +41,10 @@ class FundSpider(scrapy.Spider):
     def _build_fund_rank_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=quarterzf&code=%s' % fund_id
         return SplashRequest(url, self.parse_fund_rank, args={'wait': 0.5}, meta={'fund_id': fund_id})
+
+    def _build_fund_info(self, fund_id):
+        url = 'http://fund.eastmoney.com/%s.html' % fund_id
+        return SplashRequest(url, self.parse_fund_info, args={'wait': 0.5}, meta={'fund_id': fund_id})
 
     def parse_fund_holder(self, response):
         fund_id = response.meta['fund_id']
@@ -88,6 +93,15 @@ class FundSpider(scrapy.Spider):
         except:
             return 100.0
 
+    def parse_fund_info(self, response):
+        fund_id = response.meta['fund_id']
+        title = response.xpath('/html/head/title/text()')[0]
+        fund_name = title.extract().split('(')[0]
 
+        item = FuncInfoItem()
+        item['fund_id'] = fund_id
+        item['fund_name'] = fund_name
+        item['fund_url'] = 'http://fund.eastmoney.com/%s.html' % fund_id
+        return item
 
 

@@ -6,11 +6,19 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import json
 
+import time
+
 
 class WriteFilePipeline(object):
     def open_spider(self, spider):
         self.items = {}
-        self.file = open('items.json', 'w')
+        self.file = open('items-%s.json' % self._current_time_stamp(), 'w')
+
+    def _current_time_stamp(self):
+        now = int(time.time())
+        timeArray = time.localtime(now)
+        time_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", timeArray)
+        return time_stamp
 
     def close_spider(self, spider):
         l = [v for v in self.items.itervalues()]

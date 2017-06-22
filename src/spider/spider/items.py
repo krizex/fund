@@ -21,3 +21,9 @@ class FundHolderItem(scrapy.Item):
 class FundRankItem(scrapy.Item):
     fund_id = scrapy.Field()
     fund_rank_list = scrapy.Field()
+
+
+class FuncInfoItem(scrapy.Item):
+    fund_id = scrapy.Field()
+    fund_name = scrapy.Field()
+    fund_url = scrapy.Field()
