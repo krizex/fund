@@ -36,15 +36,15 @@ class FundSpider(scrapy.Spider):
 
     def _build_fund_holder_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=cyrjg&code=%s' % fund_id
-        return SplashRequest(url, self.parse_fund_holder, args={'wait': 0.5}, meta={'fund_id': fund_id})
+        return SplashRequest(url, self.parse_fund_holder, meta={'fund_id': fund_id})
 
     def _build_fund_rank_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=quarterzf&code=%s' % fund_id
-        return SplashRequest(url, self.parse_fund_rank, args={'wait': 0.5}, meta={'fund_id': fund_id})
+        return SplashRequest(url, self.parse_fund_rank, meta={'fund_id': fund_id})
 
     def _build_fund_info(self, fund_id):
         url = 'http://fund.eastmoney.com/%s.html' % fund_id
-        return SplashRequest(url, self.parse_fund_info, args={'wait': 0.5}, meta={'fund_id': fund_id})
+        return SplashRequest(url, self.parse_fund_info, meta={'fund_id': fund_id})
 
     def parse_fund_holder(self, response):
         fund_id = response.meta['fund_id']
