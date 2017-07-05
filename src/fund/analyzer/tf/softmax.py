@@ -47,7 +47,7 @@ class SoftmaxTrainer(object):
                                                     self.y_: [p[1] for p in verify_pairs],
                                                 })
 
-            log.debug('Recognize accuracy is %f' % recognize_accuracy)
+            log.debug('(%d)Recognize accuracy is %f' % (i, recognize_accuracy))
         log.debug('Recognize accuracy is %f' % recognize_accuracy)
         return recognize_accuracy
 

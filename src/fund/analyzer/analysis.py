@@ -81,7 +81,7 @@ def train(model, training_ratio, learning_rate, iterate_count):
 
 if __name__ == '__main__':
     data = js_data(data_file())
-    model = build_model(2, 5, data)
+    model = build_model(1, 4, data)
     train(model, 0.8, 0.000000003, 10000)
     # model.print_verbose()
     # learning_rate = 1.0
