@@ -95,5 +95,5 @@ if __name__ == '__main__':
     file = '/home/qy/dev/fund/src/spider/items-2017-07-02-23-18-34.json'
     # rank_by_latest(file, 4)
     print '-' * 40
-    rank_by_past(file, 2, 1)
+    rank_by_past(file, 1, 0)
 

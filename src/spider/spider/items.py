@@ -23,6 +23,11 @@ class FundRankItem(scrapy.Item):
     fund_rank_list = scrapy.Field()
 
 
+class FundStageRankItem(scrapy.Item):
+    fund_id = scrapy.Field()
+    fund_stage_rank_list = scrapy.Field()
+
+
 class FuncInfoItem(scrapy.Item):
     fund_id = scrapy.Field()
     fund_name = scrapy.Field()

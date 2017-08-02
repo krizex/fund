@@ -4,7 +4,7 @@ import re
 import scrapy
 from scrapy_splash import SplashRequest
 
-from spider.items import FundHolderItem, FundRankItem, FuncInfoItem
+from spider.items import FundHolderItem, FundRankItem, FuncInfoItem, FundStageRankItem
 
 __author__ = 'David Qian'
 
@@ -32,7 +32,8 @@ class FundSpider(scrapy.Spider):
             fund_id = fund_id.extract()
             yield self._build_fund_holder_request(fund_id)
             yield self._build_fund_rank_request(fund_id)
-            yield self._build_fund_info(fund_id)
+            yield self._build_fund_info_request(fund_id)
+            yield self._build_fund_stage_increase_rank_request(fund_id)
 
     def _build_fund_holder_request(self, fund_id):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=cyrjg&code=%s' % fund_id
@@ -42,9 +43,13 @@ class FundSpider(scrapy.Spider):
         url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=quarterzf&code=%s' % fund_id
         return SplashRequest(url, self.parse_fund_rank, meta={'fund_id': fund_id})
 
-    def _build_fund_info(self, fund_id):
+    def _build_fund_info_request(self, fund_id):
         url = 'http://fund.eastmoney.com/%s.html' % fund_id
         return SplashRequest(url, self.parse_fund_info, meta={'fund_id': fund_id})
+
+    def _build_fund_stage_increase_rank_request(self, fund_id):
+        url = 'http://fund.eastmoney.com/f10/FundArchivesDatas.aspx?type=jdzf&code=%s' % fund_id
+        return SplashRequest(url, self.parse_stage_increase_rank, meta={'fund_id': fund_id})
 
     def parse_fund_holder(self, response):
         fund_id = response.meta['fund_id']
@@ -81,6 +86,34 @@ class FundSpider(scrapy.Spider):
         item['fund_id'] = fund_id
         item['fund_rank_list'] = fund_rank_list
         return item
+
+    def parse_stage_increase_rank(self, response):
+        fund_id = response.meta['fund_id']
+        fund_rank_list = []
+        try:
+            rank_list = response.css('.jdzfnew').xpath("./ul")
+            last_week = rank_list[2]
+            last_month = rank_list[3]
+            for x in (last_week, last_month):
+                fund_rank_list.append(self._calc_stage_rank_rate(x))
+        except:
+            pass
+
+        item = FundStageRankItem()
+        item['fund_id'] = fund_id
+        item['fund_stage_rank_list'] = fund_rank_list
+        return item
+
+    def _calc_stage_rank_rate(self, rank):
+        try:
+            rank = rank.xpath('./li')[4].extract()
+            m = re.match(r'<li.+>(\d+)<font.+/font>(\d+)</li>', rank)
+            idx, total = m.groups()
+            idx = float(idx)
+            total = float(total)
+            return 1.0 * idx / total
+        except:
+            return 100.0
 
     def _calc_rank_rate(self, rank):
         try:
