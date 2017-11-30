@@ -136,8 +136,11 @@ class FundSpider(scrapy.Spider):
         fund_id = response.meta['fund_id']
         self.logger.info("%d/%d: %s" % (self.cur_index, self.fund_cnt, fund_id))
         self.cur_index += 1
-        title = response.xpath('/html/head/title/text()')[0]
-        fund_name = title.extract().split('(')[0]
+        try:
+            title = response.xpath('/html/head/title/text()')[0]
+            fund_name = title.extract().split('(')[0]
+        except:
+            fund_name = 'UNKNOWN'
 
         item = FuncInfoItem()
         item['fund_id'] = fund_id
