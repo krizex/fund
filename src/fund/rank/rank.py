@@ -45,7 +45,7 @@ class FundRankBase(object):
     def latest_month_rank_rate_gen(self, num):
         for i in range(num):
             rec = self._ranked_js[i]
-            yield '%3.1f%%' % (rec['fund_stage_rank_list'][1] * 10)
+            yield '%3.1f%%' % (rec['fund_stage_rank_list'][1] * 100)
 
     def print_fund_rank_with_generator(self, num, *gens):
         for i in range(num):
@@ -116,7 +116,11 @@ class FundRankByStageIncreaseAndSeason(FundRankByPerformance):
         self._ranked_js = sorted(self._ranked_js, key=self.performance_with_latest_month, reverse=False)
 
     def performance_with_latest_month(self, rec):
-        return self.total_performance_by_season(self.season_cnt, 0)(rec) + rec['fund_stage_rank_list'][1]
+        return self.total_performance_by_season(self.season_cnt, 0)(rec) + rec['fund_stage_rank_list'][1] / 3
+
+    def prepare_rank_list(self):
+        super(FundRankByStageIncreaseAndSeason, self).prepare_rank_list()
+        self._ranked_js = filter(lambda rec: len(rec['fund_stage_rank_list']) > 1, self._ranked_js)
 
 
 def rank_by_latest(file, season_cnt):
@@ -137,11 +141,13 @@ def rank_by_stage_increase_and_past(file, season_cnt):
     print_fund_cnt = 100
     ranker = FundRankByStageIncreaseAndSeason(file, season_cnt)
     ranker.rank()
-    ranker.print_fund_rank(print_fund_cnt, season_cnt)
+    ranker.print_fund_rank_with_latest_month(print_fund_cnt, season_cnt)
+
+def main():
+    file = '/home/qy/dev/fund/src/spider/items-2017-10-23-21-52-33.json'
+    rank_by_stage_increase_and_past(file, 2)
+
 
 if __name__ == '__main__':
-    file = '/home/qy/dev/fund/src/spider/items-2017-07-02-23-18-34.json'
-    # rank_by_latest(file, 4)
-    print '-' * 40
-    rank_by_past(file, 1, 0)
+    main()
 

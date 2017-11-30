@@ -22,12 +22,18 @@ class FundSpider(scrapy.Spider):
         'http://fund.eastmoney.com/f10/cyrjg_000801.html'
     ]
 
+    def init(self):
+        self.fund_cnt = 0
+        self.cur_index = 1
+
     def start_requests(self):
         for url in self.start_urls:
             yield SplashRequest(url, self.parse, args={'wait': 0.5})
 
     def parse(self, response):
+        self.init()
         fund_list = response.xpath("//select[@id='jjlist']/option/@value")
+        self.fund_cnt = len(fund_list)
         for fund_id in fund_list:
             fund_id = fund_id.extract()
             yield self._build_fund_holder_request(fund_id)
@@ -128,6 +134,8 @@ class FundSpider(scrapy.Spider):
 
     def parse_fund_info(self, response):
         fund_id = response.meta['fund_id']
+        self.logger.info("%d/%d: %s" % (self.cur_index, self.fund_cnt, fund_id))
+        self.cur_index += 1
         title = response.xpath('/html/head/title/text()')[0]
         fund_name = title.extract().split('(')[0]
 
